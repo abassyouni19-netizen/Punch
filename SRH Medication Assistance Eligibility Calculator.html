@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medication Assistance Eligibility Screener · SRH Specialty Pharmacy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#eef2f1;
+    --surface:#ffffff;
+    --ink:#15302a;
+    --muted:#5c6e69;
+    --faint:#82948e;
+    --line:#d9e2df;
+    --line-strong:#c3d0cc;
+    --pine:#1f7a52;
+    --pine-deep:#155e3f;
+    --teal:#0e5c6b;
+    --slate:#5d6b78;
+    --slate-soft:#e7ebee;
+    --green-soft:#e2f0e8;
+    --shadow:0 1px 2px rgba(20,40,35,.04),0 8px 24px rgba(20,40,35,.06);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"Hanken Grotesk",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    background:var(--canvas);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;
+    padding:clamp(16px,4vw,48px) clamp(14px,4vw,32px);
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1060px;margin:0 auto}
+
+  header{margin-bottom:26px}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--pine);display:inline-block}
+  h1{font-size:clamp(26px,4.2vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.08;color:var(--ink);max-width:18ch}
+  .sub{margin-top:10px;color:var(--muted);font-size:15px;max-width:60ch}
+  .tags{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+  .tag{font-size:12px;font-weight:600;color:var(--pine-deep);background:var(--green-soft);padding:5px 11px;border-radius:999px;border:1px solid #cfe5d9}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  @media(max-width:840px){.grid{grid-template-columns:1fr}}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card-pad{padding:clamp(18px,3vw,26px)}
+  .card-head{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:16px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+
+  label.field{display:block;margin-bottom:20px}
+  label.field:last-child{margin-bottom:0}
+  .label-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+  .label-row .lab{font-weight:600;font-size:15px}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.45}
+
+  .stepper{display:flex;align-items:stretch;border:1px solid var(--line-strong);border-radius:11px;overflow:hidden;width:max-content}
+  .stepper button{width:46px;border:none;background:#f5f8f7;color:var(--pine-deep);font-size:22px;font-weight:600;cursor:pointer;transition:background .12s}
+  .stepper button:hover{background:var(--green-soft)}
+  .stepper button:active{background:#cfe5d9}
+  .stepper input{width:64px;border:none;text-align:center;font-size:20px;font-weight:600;background:#fff;color:var(--ink);border-left:1px solid var(--line);border-right:1px solid var(--line)}
+  .stepper input:focus{outline:2px solid var(--pine);outline-offset:-2px}
+
+  .seg{display:inline-flex;background:#eef2f1;border:1px solid var(--line);border-radius:10px;padding:3px}
+  .seg button{border:none;background:transparent;padding:7px 16px;font-size:13.5px;font-weight:600;color:var(--muted);border-radius:7px;cursor:pointer;font-family:inherit;transition:all .12s}
+  .seg button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(20,40,35,.08)}
+
+  .src-row{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+  .src-row .amt{position:relative;flex:1}
+  .src-row .amt::before{content:"$";position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint);font-weight:600}
+  .src-row input.money{width:100%;border:1px solid var(--line-strong);border-radius:10px;padding:11px 12px 11px 24px;font-size:16px;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--ink);background:#fff}
+  .src-row input.lbl{flex:1;border:1px solid var(--line-strong);border-radius:10px;padding:11px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff}
+  .src-row input:focus{outline:2px solid var(--pine);outline-offset:-1px;border-color:var(--pine)}
+  .rm{border:1px solid var(--line);background:#fff;color:var(--faint);width:38px;height:42px;border-radius:9px;cursor:pointer;font-size:18px;line-height:1;flex:none;transition:all .12s}
+  .rm:hover{color:#b23b3b;border-color:#e6c5c5;background:#fdf3f3}
+  .rm:disabled{opacity:.3;cursor:not-allowed}
+  .add-src{margin-top:4px;border:1px dashed var(--line-strong);background:#fafcfb;color:var(--pine-deep);padding:10px;width:100%;border-radius:10px;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:all .12s}
+  .add-src:hover{background:var(--green-soft);border-color:#bcdccd}
+  .total-line{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .total-line .k{font-size:14px;color:var(--muted);font-weight:600}
+  .total-line .v{font-size:17px;font-weight:600}
+
+  .result-card{position:sticky;top:24px}
+  @media(max-width:840px){.result-card{position:static}}
+  .verdict{padding:clamp(20px,3vw,26px)}
+  .verdict-status{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:7px 13px;border-radius:999px;margin-bottom:18px}
+  .dot{width:9px;height:9px;border-radius:50%}
+  .s-elig{background:var(--green-soft);color:var(--pine-deep)} .s-elig .dot{background:var(--pine)}
+  .s-over{background:var(--slate-soft);color:#3f4a55} .s-over .dot{background:var(--slate)}
+  .s-none{background:#eef2f1;color:var(--faint)} .s-none .dot{background:var(--faint)}
+
+  .pct-readout{display:flex;align-items:flex-end;gap:10px;margin-bottom:4px}
+  .pct-num{font-size:clamp(44px,8vw,64px);font-weight:600;line-height:.92;letter-spacing:-.02em}
+  .pct-unit{font-size:18px;color:var(--muted);font-weight:600;padding-bottom:8px}
+  .pct-label{color:var(--muted);font-size:14px;margin-bottom:22px}
+  .verdict-headline{font-size:20px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px}
+  .verdict-note{font-size:14px;color:var(--muted);line-height:1.5}
+
+  .gauge-block{padding:0 clamp(20px,3vw,26px) clamp(20px,3vw,26px)}
+  .gauge{position:relative;height:48px;margin-top:8px}
+  .gauge-track{position:absolute;inset:0;border-radius:9px;overflow:hidden;display:flex;border:1px solid var(--line)}
+  .zone{height:100%}
+  .zone.elig{background:linear-gradient(180deg,#e9f3ed,#dcefe4)}
+  .zone.over{background:linear-gradient(180deg,#eceff2,#e3e8ec)}
+  .marker{position:absolute;top:-7px;bottom:-7px;width:3px;background:var(--ink);border-radius:2px;transition:left .35s cubic-bezier(.4,0,.2,1);z-index:3}
+  .marker::after{content:"";position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--ink)}
+  .gauge-scale{position:relative;height:18px;margin-top:7px}
+  .gauge-scale span{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--faint);font-family:"IBM Plex Mono",monospace}
+  .zone-legend{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap}
+  .zone-legend .lg{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);font-weight:500}
+  .zone-legend .sw{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.06)}
+
+  .breakdown{border-top:1px solid var(--line);padding:18px clamp(20px,3vw,26px)}
+  .brk-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;font-size:14px}
+  .brk-row.feature{margin-top:4px;padding-top:12px;border-top:1px dashed var(--line)}
+  .brk-row.feature .k{font-weight:600;color:var(--ink)}
+  .brk-row.feature .v{font-size:16px}
+  .brk-row .k{color:var(--muted)}
+  .brk-row .v{font-weight:600}
+  .actions{display:flex;gap:10px;padding:0 clamp(20px,3vw,26px) clamp(20px,3vw,26px)}
+  .btn{flex:1;border:1px solid var(--line-strong);background:#fff;color:var(--ink);padding:11px;border-radius:10px;font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;transition:all .12s}
+  .btn:hover{background:#f5f8f7;border-color:var(--pine)}
+  .btn.primary{background:var(--pine);border-color:var(--pine);color:#fff}
+  .btn.primary:hover{background:var(--pine-deep);border-color:var(--pine-deep)}
+
+  .ref{margin-top:18px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:right;padding:10px 14px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:700;background:#f7faf9}
+  tbody td{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+  tbody td:first-child{font-family:"Hanken Grotesk",sans-serif;font-weight:600}
+  tr.tier-elig td{background:#f3f9f5}
+  tr.tier-limit td{background:#eef5f1;border-top:2px solid var(--pine)}
+  .band-pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:middle}
+  .band-pill.elig{background:var(--green-soft);color:var(--pine-deep)}
+  .band-pill.limit{background:var(--pine);color:#fff}
+  .band-pill.over{background:var(--slate-soft);color:#3f4a55}
+
+  details.settings{margin-top:18px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow)}
+  details.settings summary{list-style:none;cursor:pointer;padding:16px 22px;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;justify-content:space-between}
+  details.settings summary::-webkit-details-marker{display:none}
+  details.settings summary::after{content:"+";font-size:18px;color:var(--pine);transition:transform .2s}
+  details.settings[open] summary::after{content:"–"}
+  .set-grid{padding:4px 22px 22px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:560px){.set-grid{grid-template-columns:1fr}}
+  .set-field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+  .set-field .sub-lab{font-size:12px;color:var(--muted);font-weight:400}
+  .set-field input{width:100%;border:1px solid var(--line-strong);border-radius:9px;padding:10px 12px;font-size:15px;font-family:"IBM Plex Mono",monospace;color:var(--ink);background:#fff}
+  .set-field input:focus{outline:2px solid var(--pine);outline-offset:-1px;border-color:var(--pine)}
+  .set-note{grid-column:1/-1;font-size:13px;color:var(--muted);line-height:1.5;background:#f7faf9;border-radius:9px;padding:12px 14px}
+  .reset{grid-column:1/-1;justify-self:start;border:none;background:none;color:var(--teal);font-weight:600;font-size:13px;cursor:pointer;padding:0;text-decoration:underline}
+
+  .disclaimer{margin-top:22px;font-size:13px;color:var(--muted);line-height:1.6;background:#f7faf9;border:1px solid var(--line);border-left:3px solid var(--teal);border-radius:10px;padding:16px 18px}
+  .disclaimer strong{color:var(--ink)}
+  footer{margin-top:24px;font-size:12px;color:var(--faint);text-align:center;line-height:1.6}
+
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media print{body{background:#fff;padding:0}.actions,details.settings,.add-src,.stepper button,.rm{display:none}.card{box-shadow:none;border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">SRH Specialty Pharmacy</div>
+    <h1>Medication Assistance Eligibility Screener</h1>
+    <p class="sub">Enter household size and gross monthly income to check a patient against the pharmacy's income limit for medication assistance. No patient names or identifying details are needed or stored.</p>
+    <div class="tags">
+      <span class="tag">340B medication assistance</span>
+      <span class="tag" id="tag-year">2026 federal poverty guidelines</span>
+      <span class="tag" id="tag-cutoff">Income limit 500% of poverty level</span>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <section class="card">
+      <div class="card-head">Patient household</div>
+      <div class="card-pad">
+
+        <div class="field">
+          <div class="label-row"><span class="lab">Household size</span></div>
+          <div class="stepper">
+            <button type="button" id="size-minus" aria-label="Decrease household size">−</button>
+            <input type="number" id="size" value="1" min="1" max="20" inputmode="numeric" aria-label="Number of people in household">
+            <button type="button" id="size-plus" aria-label="Increase household size">+</button>
+          </div>
+          <p class="hint">Count only people who <strong>live in the home</strong>, related by birth, marriage, or adoption. Do not count relatives who live elsewhere, or roommates.</p>
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <span class="lab">Gross income</span>
+            <span class="seg" role="group" aria-label="Income period">
+              <button type="button" id="per-month" aria-pressed="true">Monthly</button>
+              <button type="button" id="per-year" aria-pressed="false">Annual</button>
+            </span>
+          </div>
+          <div id="sources"></div>
+          <button type="button" class="add-src" id="add-src">+ Add income source</button>
+          <p class="hint">Use <strong>gross income before taxes and deductions</strong>. Add a row for each adult household member or income source (wages, SSI, disability, pension, retirement distributions, support, and so on).</p>
+          <div class="total-line">
+            <span class="k" id="total-k">Household income, monthly</span>
+            <span class="v mono" id="total-v">$0</span>
+          </div>
+          <div class="total-line" style="border-top:none;padding-top:2px;margin-top:2px">
+            <span class="k" id="annual-k">Annualized</span>
+            <span class="v mono" id="annual-v" style="color:var(--muted);font-weight:500">$0</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="card result-card">
+      <div class="verdict">
+        <span class="verdict-status s-none" id="status"><span class="dot"></span><span id="status-text">Enter income</span></span>
+        <div class="pct-readout">
+          <span class="pct-num mono" id="pct-num">—</span>
+          <span class="pct-unit" id="pct-unit"></span>
+        </div>
+        <div class="pct-label">of the <span id="pct-year">2026</span> federal poverty level for a household of <span id="pct-size">1</span></div>
+        <div class="verdict-headline" id="headline">Awaiting income entry</div>
+        <div class="verdict-note" id="note">Add at least one income amount to screen this household.</div>
+      </div>
+
+      <div class="gauge-block">
+        <div class="gauge">
+          <div class="gauge-track" id="track"></div>
+          <div class="marker" id="marker" style="left:0%"></div>
+        </div>
+        <div class="gauge-scale" id="scale"></div>
+        <div class="zone-legend">
+          <span class="lg"><span class="sw" style="background:#dcefe4"></span> Eligible (at or below <span id="lg-cut">500</span>%)</span>
+          <span class="lg"><span class="sw" style="background:#e3e8ec"></span> Over income limit</span>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="brk-row"><span class="k">Annual household income</span><span class="v mono" id="b-income">$0</span></div>
+        <div class="brk-row"><span class="k">Poverty level (household of <span id="b-size">1</span>)</span><span class="v mono" id="b-fpl">$0</span></div>
+        <div class="brk-row feature"><span class="k">Income limit to qualify (<span id="b-cutpct">500</span>%)</span><span class="v mono" id="b-limit">$0</span></div>
+        <div class="brk-row"><span class="k" style="padding-left:0">Same limit, monthly</span><span class="v mono" id="b-limit-mo" style="font-weight:500;color:var(--muted)">$0</span></div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="copy-btn">Copy screening summary</button>
+        <button type="button" class="btn" onclick="window.print()">Print</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="card ref">
+    <div class="card-head">Income by poverty level · household of <span id="ref-size" style="margin-left:4px">1</span></div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>% of poverty level</th><th>Annual income</th><th>Monthly income</th></tr></thead>
+        <tbody id="ref-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="settings">
+    <summary>Program settings · income limit and poverty figures</summary>
+    <div class="set-grid">
+      <div class="set-field">
+        <label for="set-cut">Income limit to qualify <span class="sub-lab">(% of poverty level)</span></label>
+        <input type="number" id="set-cut" value="500" min="0" step="5">
+      </div>
+      <div class="set-field">
+        <label for="set-year">Guideline year <span class="sub-lab">(label only)</span></label>
+        <input type="number" id="set-year" value="2026" min="2000" step="1">
+      </div>
+      <div class="set-field">
+        <label for="set-base">Poverty level, 1 person <span class="sub-lab">(annual $)</span></label>
+        <input type="number" id="set-base" value="15960" min="0" step="10">
+      </div>
+      <div class="set-field">
+        <label for="set-inc">Added per extra person <span class="sub-lab">(annual $)</span></label>
+        <input type="number" id="set-inc" value="5680" min="0" step="10">
+      </div>
+      <button type="button" class="reset" id="reset-btn">Reset to 2026 defaults</button>
+      <p class="set-note">The pharmacy medication assistance program qualifies households at or below 500% of the federal poverty level. There is no sliding scale, so eligibility is a single income limit. Poverty figures are the HHS 2026 guidelines for the 48 contiguous states and DC. Update the two dollar fields each January when new guidelines publish.</p>
+    </div>
+  </details>
+
+  <div class="disclaimer">
+    <strong>This is a screening estimate, not a final determination.</strong> It compares household income to 500% of the federal poverty level, the pharmacy's income limit for medication assistance. Final eligibility is determined by SRH Specialty Pharmacy using verified income documentation. A household over the limit may still qualify on a case by case basis under the financial assistance policy.
+  </div>
+
+  <footer>
+    SRH Specialty Pharmacy · 1400 E Kincaid St, Mount Vernon, WA 98274 · 360-718-9782<br>
+    Internal screening tool. Runs entirely in your browser. Nothing is sent anywhere or saved.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const DEFAULTS = { cut:500, base:15960, inc:5680, year:2026 };
+  let cfg = Object.assign({}, DEFAULTS);
+  let period = "month";
+
+  const $ = id => document.getElementById(id);
+  const fmt = n => "$" + Math.round(n).toLocaleString("en-US");
+  const fplFor = size => cfg.base + (Math.max(1,size) - 1) * cfg.inc;
+  const num = (v,d) => { const n=parseFloat(v); return isNaN(n)?d:n; };
+
+  // Income sources
+  const sourcesEl = $("sources");
+  function makeRow(){
+    const row = document.createElement("div");
+    row.className = "src-row";
+    row.innerHTML =
+      '<input class="lbl" type="text" placeholder="Source (optional)" aria-label="Income source label">' +
+      '<span class="amt"><input class="money" type="text" inputmode="decimal" placeholder="0" aria-label="Income amount"></span>' +
+      '<button class="rm" type="button" aria-label="Remove income source">×</button>';
+    row.querySelector(".money").addEventListener("input", compute);
+    row.querySelector(".rm").addEventListener("click", function(){ row.remove(); refreshRemove(); compute(); });
+    return row;
+  }
+  function refreshRemove(){ const b=sourcesEl.querySelectorAll(".rm"); b.forEach(x=>x.disabled=b.length<=1); }
+  function addRow(){ sourcesEl.appendChild(makeRow()); refreshRemove(); }
+  $("add-src").addEventListener("click", addRow);
+  addRow();
+
+  function sumIncome(){
+    let t=0;
+    sourcesEl.querySelectorAll(".money").forEach(function(inp){
+      const v=parseFloat(String(inp.value).replace(/[^0-9.]/g,"")); if(!isNaN(v)) t+=v;
+    });
+    return t;
+  }
+
+  // Household size
+  const sizeEl=$("size");
+  function clampSize(){ let s=parseInt(sizeEl.value,10); if(isNaN(s)||s<1)s=1; if(s>20)s=20; sizeEl.value=s; return s; }
+  $("size-minus").addEventListener("click", function(){ sizeEl.value=Math.max(1,(parseInt(sizeEl.value,10)||1)-1); compute(); });
+  $("size-plus").addEventListener("click", function(){ sizeEl.value=Math.min(20,(parseInt(sizeEl.value,10)||1)+1); compute(); });
+  sizeEl.addEventListener("input", compute);
+
+  // Period
+  $("per-month").addEventListener("click", function(){ setPeriod("month"); });
+  $("per-year").addEventListener("click", function(){ setPeriod("year"); });
+  function setPeriod(p){
+    period=p;
+    $("per-month").setAttribute("aria-pressed", p==="month");
+    $("per-year").setAttribute("aria-pressed", p==="year");
+    $("total-k").textContent="Household income, "+(p==="month"?"monthly":"annual");
+    compute();
+  }
+
+  // Settings
+  function readCfg(){
+    cfg.cut=num($("set-cut").value, DEFAULTS.cut);
+    cfg.base=num($("set-base").value, DEFAULTS.base);
+    cfg.inc=num($("set-inc").value, DEFAULTS.inc);
+    cfg.year=parseInt($("set-year").value,10)||DEFAULTS.year;
+  }
+  ["set-cut","set-base","set-inc","set-year"].forEach(function(id){ $(id).addEventListener("input", function(){ readCfg(); compute(); }); });
+  $("reset-btn").addEventListener("click", function(){
+    $("set-cut").value=DEFAULTS.cut; $("set-base").value=DEFAULTS.base; $("set-inc").value=DEFAULTS.inc; $("set-year").value=DEFAULTS.year;
+    readCfg(); compute();
+  });
+
+  // Gauge
+  function buildGauge(cut, pct){
+    const max=Math.max(cut+100, Math.ceil((pct+30)/50)*50);
+    const track=$("track");
+    const ew=Math.min(cut,max)/max*100;
+    track.innerHTML='<div class="zone elig" style="width:'+ew+'%"></div><div class="zone over" style="width:'+(100-ew)+'%"></div>';
+    $("marker").style.left=(Math.min(pct,max)/max*100)+"%";
+    const scale=$("scale"); scale.innerHTML="";
+    [0,cut,max].forEach(function(t){
+      const sp=document.createElement("span");
+      sp.style.left=(Math.min(t,max)/max*100)+"%";
+      sp.textContent=Math.round(t)+"%";
+      scale.appendChild(sp);
+    });
+  }
+
+  // Reference table
+  function buildRef(size){
+    const cut=cfg.cut;
+    let bands=[100,200,300,400,cut,cut+100].filter(function(v,i,a){return a.indexOf(v)===i;}).sort(function(a,b){return a-b;});
+    const fpl=fplFor(size), body=$("ref-body"); body.innerHTML="";
+    bands.forEach(function(p){
+      const annual=fpl*p/100, tr=document.createElement("tr");
+      let pill="";
+      if(p===cut){ tr.className="tier-limit"; pill='<span class="band-pill limit">limit</span>'; }
+      else if(p<cut){ tr.className="tier-elig"; pill='<span class="band-pill elig">eligible</span>'; }
+      else { pill='<span class="band-pill over">over</span>'; }
+      tr.innerHTML="<td>"+p+"%"+pill+"</td><td>"+fmt(annual)+"</td><td>"+fmt(annual/12)+"</td>";
+      body.appendChild(tr);
+    });
+  }
+
+  // Main
+  function compute(){
+    const size=clampSize(), raw=sumIncome();
+    const monthly=period==="month"?raw:raw/12, annual=monthly*12;
+    const fpl=fplFor(size), pct=fpl>0?(annual/fpl*100):0, hasIncome=raw>0;
+    const limitAnnual=fpl*cfg.cut/100;
+
+    $("tag-year").textContent=cfg.year+" federal poverty guidelines";
+    $("tag-cutoff").textContent="Income limit "+Math.round(cfg.cut)+"% of poverty level";
+    $("pct-year").textContent=cfg.year;
+    $("pct-size").textContent=size;
+    $("b-size").textContent=size;
+    $("ref-size").textContent=size;
+    $("b-cutpct").textContent=Math.round(cfg.cut);
+    $("lg-cut").textContent=Math.round(cfg.cut);
+    $("total-v").textContent=fmt(raw);
+    $("annual-k").textContent=period==="month"?"Annualized (× 12)":"Per month (÷ 12)";
+    $("annual-v").textContent=fmt(period==="month"?annual:monthly);
+    $("b-income").textContent=fmt(annual);
+    $("b-fpl").textContent=fmt(fpl);
+    $("b-limit").textContent=fmt(limitAnnual);
+    $("b-limit-mo").textContent=fmt(limitAnnual/12);
+
+    buildRef(size);
+    buildGauge(cfg.cut, hasIncome?pct:0);
+
+    const statusEl=$("status"), statusText=$("status-text");
+    if(!hasIncome){
+      $("pct-num").textContent="—"; $("pct-unit").textContent="";
+      statusEl.className="verdict-status s-none";
+      statusText.textContent="Enter income";
+      $("headline").textContent="Awaiting income entry";
+      $("note").textContent="Add at least one income amount to screen this household.";
+      return;
+    }
+
+    $("pct-num").textContent=Math.round(pct).toLocaleString("en-US");
+    $("pct-unit").textContent="%";
+
+    if(pct<=cfg.cut){
+      statusEl.className="verdict-status s-elig";
+      statusText.textContent="Likely eligible";
+      $("headline").textContent="At or below "+Math.round(cfg.cut)+"% of poverty level";
+      $("note").textContent="Screens within the income limit for medication assistance. Confirm with income documentation, then process per policy.";
+    } else {
+      statusEl.className="verdict-status s-over";
+      statusText.textContent="Over income limit";
+      $("headline").textContent="Above "+Math.round(cfg.cut)+"% of poverty level";
+      $("note").textContent="Over the income limit. May still qualify on a case by case basis under the financial assistance policy.";
+    }
+  }
+
+  // Copy summary (no PHI)
+  $("copy-btn").addEventListener("click", function(){
+    const size=clampSize(), raw=sumIncome();
+    if(raw<=0){ flashCopy("Enter income first"); return; }
+    const monthly=period==="month"?raw:raw/12, annual=monthly*12, fpl=fplFor(size), pct=Math.round(annual/fpl*100);
+    const tier = pct<=cfg.cut
+      ? "Eligible (at or below "+Math.round(cfg.cut)+"% FPL)"
+      : "Over income limit (above "+Math.round(cfg.cut)+"% FPL); case by case review possible";
+    const txt=
+      "Medication assistance screening ("+cfg.year+" federal poverty guidelines)\n"+
+      "Household size: "+size+"\n"+
+      "Gross monthly income: "+fmt(monthly)+"  ("+fmt(annual)+" annual)\n"+
+      "Poverty level for household: "+fmt(fpl)+"\n"+
+      "Percent of poverty level: "+pct+"%\n"+
+      "Income limit to qualify ("+Math.round(cfg.cut)+"%): "+fmt(fpl*cfg.cut/100)+" annual\n"+
+      "Screening result: "+tier+"\n"+
+      "Screening estimate only. Final determination per verified documentation.";
+    const done=function(){ flashCopy("Copied"); };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(done, function(){ legacyCopy(txt); done(); });
+    } else { legacyCopy(txt); done(); }
+  });
+  function legacyCopy(t){ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");}catch(e){} ta.remove(); }
+  let copyTimer;
+  function flashCopy(msg){ const b=$("copy-btn"), old=b.textContent; b.textContent=msg; clearTimeout(copyTimer); copyTimer=setTimeout(function(){ b.textContent=old; },1400); }
+
+  readCfg();
+  compute();
+})();
+</script>
+</body>
+</html>
